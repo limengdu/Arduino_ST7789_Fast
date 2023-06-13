@@ -3,31 +3,18 @@
 // (c) 2019 Pawel A. Hernik
 // YT video: https://youtu.be/vQY5ILjSZBc
 
-/*
- ST7789 240x240 IPS (without CS pin) connections (only 6 wires required):
-
- #01 GND -> GND
- #02 VCC -> VCC (3.3V only!)
- #03 SCL -> D13/SCK
- #04 SDA -> D11/MOSI
- #05 RES -> D8 or any digital
- #06 DC  -> D7 or any digital
- #07 BLK -> NC
-*/
-
-#define TFT_DC    7
-#define TFT_RST   8 
-#define SCR_WD   240
-#define SCR_HT   240   // 320 - to allow access to full 240x320 frame buffer
-#include <SPI.h>
 #include <Adafruit_GFX.h>
 #include <Arduino_ST7789_Fast.h>
-Arduino_ST7789 lcd = Arduino_ST7789(TFT_DC, TFT_RST);
+
+#define SCK   7
+#define SDA   8
+
+Arduino_ST7789 lcd = Arduino_ST7789(SCK, SDA);
 
 void setup() 
 {
   Serial.begin(115200);
-  lcd.init(SCR_WD, SCR_HT);
+  lcd.init();
   lcd.fillScreen(BLACK);
   lcd.drawRect(0,0,240,240,RED);
   lcd.setTextColor(WHITE);
