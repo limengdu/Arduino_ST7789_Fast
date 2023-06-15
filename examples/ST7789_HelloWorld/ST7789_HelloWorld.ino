@@ -18,8 +18,6 @@ void setup(void)
     lcd.setTextColor(WHITE,BLACK);
     lcd.setTextSize(3);
     lcd.println("HELLO WORLD");
-    lcd.println("stephen loovee");
-    lcd.println("holly shit");
 }
 
 void loop()
