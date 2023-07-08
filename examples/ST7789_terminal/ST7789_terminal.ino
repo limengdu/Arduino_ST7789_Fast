@@ -13,6 +13,9 @@
 #define SCK   24
 #define SDA   23
 
+#define SCR_WD   240
+#define SCR_HT   320   // 320 - to allow access to full 240x320 frame buffer
+
 Arduino_ST7789 lcd = Arduino_ST7789(SCK, SDA);
 
 RREFont font;
@@ -38,138 +41,146 @@ uint16_t c1 = RGBto565(40,40,40);
 
 void scrollScreen()
 {
-    xp = 0;
-    ys += charHt*sy;
-    if(ys>=maxy) ys-=maxy;
-    yp = ys+screenHt;
-    if(yp>=maxy) yp-=maxy;
-    lcd.fillRect(0, yp, screenWd, charHt*sy, ((yp/charHt)&1) ? c1 : c0);
-    lcd.setScroll(ys);
+  xp = 0;
+  ys += charHt*sy;
+  if(ys>=maxy) ys-=maxy;
+  yp = ys+screenHt;
+  if(yp>=maxy) yp-=maxy;
+  lcd.fillRect(0, yp, screenWd, charHt*sy, ((yp/charHt)&1) ? c1 : c0);
+  lcd.setScroll(ys);
 }
 
 void printString(char *str)
 {
-    while(*str) printTermChar(*str++);
+  while(*str) printTermChar(*str++);
 }
 
 void printTermChar(char c)
 {
-    static const uint16_t colors[] = {
-        0x0000, // 0-black
-        0xf800, // 1-red
-        0x07e0, // 2-green
-        0xffe0, // 3-yellow
-        0x001f, // 4-blue
-        0xf81f, // 5-magenta
-        0x07ff, // 6-cyan
-        0xffff  // 7-white
-    };
+  static const uint16_t colors[] = {
+    0x0000, // 0-black
+    0xf800, // 1-red
+    0x07e0, // 2-green
+    0xffe0, // 3-yellow
+    0x001f, // 4-blue
+    0xf81f, // 5-magenta
+    0x07ff, // 6-cyan
+    0xffff  // 7-white
+  };
 
-    if(c==0x1b) { escMode=1; return; }
-    if(escMode==1) {
-        if(c=='[') { escMode=2; nVals=0; } else escMode=0;
-        return;
+  if(c==0x1b) { escMode=1; return; }
+  if(escMode==1) {
+    if(c=='[') { escMode=2; nVals=0; } else escMode=0;
+    return;
+  }
+  if(escMode==2) {
+    if(isdigit(c))
+      vals[nVals] = vals[nVals]*10+(c-'0');
+    else if(c==';')
+      nVals++;
+    else if(c=='m') {
+      escMode=0;
+      nVals++;
+      for(int i=0;i<nVals;i++) {
+        int v = vals[i];
+        if(v == 0) { // all attributes off
+          if(nVals==1) {
+            fg = WHITE;
+            bg = BLACK;
+            font.setColor(fg);
+          }
+          font.setBold(0);
+        } else if(v == 1) { // bold
+          font.setBold(1);
+        } else if(v == 7) { // inverse
+          font.setColor(bg, fg);
+        } else if(v>=30 && v<38){ // fg colors
+          fg = colors[v-30]; 
+          if(bg==BLACK) font.setColor(fg); else font.setColor(fg, bg);
+        } else if(v>=40 && v<48){
+          bg = colors[v-40]; 
+          if(bg==BLACK) font.setColor(fg); else font.setColor(fg, bg);
+        } else if(v>=90 && v<98){ // fg colors
+          fg = colors[v-90]; 
+          if(bg==BLACK) font.setColor(fg); else font.setColor(fg, bg);
+        } else if(v>=100 && v<108){
+          bg = colors[v-100]; 
+          if(bg==BLACK) font.setColor(fg); else font.setColor(fg, bg);
+        }          
+      }
+      vals[0]=vals[1]=vals[2]=vals[3]=0;
+      nVals=0;
+    } else {
+      escMode=0;
+      vals[0]=vals[1]=vals[2]=vals[3]=0;
+      nVals=0;
     }
-    if(escMode==2) {
-        if(isdigit(c))
-        vals[nVals] = vals[nVals]*10+(c-'0');
-        else if(c==';')
-        nVals++;
-        else if(c=='m') {
-            escMode=0;
-            nVals++;
-            for(int i=0;i<nVals;i++) {
-                int v = vals[i];
-                if(v == 0) { // all attributes off
-                    if(nVals==1) {
-                        fg = WHITE;
-                        bg = BLACK;
-                        font.setColor(fg);
-                    }
-                    font.setBold(0);
-                } else if(v == 1) { // bold
-                    font.setBold(1);
-                } else if(v == 7) { // inverse
-                    font.setColor(bg, fg);
-                } else if(v>=30 && v<38){ // fg colors
-                    fg = colors[v-30];
-                    if(bg==BLACK) font.setColor(fg); else font.setColor(fg, bg);
-                } else if(v>=40 && v<48){
-                    bg = colors[v-40];
-                    if(bg==BLACK) font.setColor(fg); else font.setColor(fg, bg);
-                } else if(v>=90 && v<98){ // fg colors
-                    fg = colors[v-90];
-                    if(bg==BLACK) font.setColor(fg); else font.setColor(fg, bg);
-                } else if(v>=100 && v<108){
-                    bg = colors[v-100];
-                    if(bg==BLACK) font.setColor(fg); else font.setColor(fg, bg);
-                }
-            }
-            vals[0]=vals[1]=vals[2]=vals[3]=0;
-            nVals=0;
-        } else {
-            escMode=0;
-            vals[0]=vals[1]=vals[2]=vals[3]=0;
-            nVals=0;
-        }
-        return;
-    }
-    if(c==10) { scrollScreen(); return; } // LF
-    if(c==13) { xp=0; return; } // CR
-    if(c==8) { // BS
-        if(xp>0) xp-=charWd*sx;
-        lcd.fillRect(xp, yp, charWd*sx, charHt*sy, BLACK);
-        return;
-    }
-    if(xp<screenWd) font.drawChar(xp, yp, c); // 150-650us
-    xp+=charWd*sx;
-    if(xp>=screenWd && wrap) scrollScreen(); // 8900us
+    return;
+  }
+  if(c==10) { scrollScreen(); return; } // LF
+  if(c==13) { xp=0; return; } // CR
+  if(c==8) { // BS
+    if(xp>0) xp-=charWd*sx; 
+    lcd.fillRect(xp, yp, charWd*sx, charHt*sy, BLACK);
+    return; 
+  }
+  if(xp<screenWd) font.drawChar(xp, yp, c); // 150-650us
+  xp+=charWd*sx;
+  if(xp>=screenWd && wrap) scrollScreen(); // 8900us
 }
 
 void testVT100()
 {
-    printString("\e[0;32;40mGreen on black\n");
-    printString("\e[0;37;45mWhite on magenta\n");
-    printString("\e[0;30;46mBlack on cyan\n");
-    printString("\e[0;33;44mYellow on blue\n");
-    printString("\e[0;31;47mRed on white\n");
-    printString("\e[0mRegular\n");
-    printString("\e[1mText in bold\e[0m\n");
-    printString("\e[7mInverse\e[0m\n");
+  printString("\e[0;32;40mGreen on black\n");
+  printString("\e[0;37;45mWhite on magenta\n");
+  printString("\e[0;30;46mBlack on cyan\n");
+  printString("\e[0;33;44mYellow on blue\n");
+  printString("\e[0;31;47mRed on white\n");
+  printString("\e[0mRegular\n");
+  printString("\e[1mText in bold\e[0m\n");
+  printString("\e[7mInverse\e[0m\n");
+  printString("ABCDEFGHIJKLMNOPQRSTUVWXYZ[]{}\n");
+  printString("abcdefghijklmnopqrstuvwxyz:;()\n");
+  printString("01234567890,.'!|?/*_=+-#%$^&\n");
+  if(charHt*sy<24) {
+    printString("\e[1m");
     printString("ABCDEFGHIJKLMNOPQRSTUVWXYZ[]{}\n");
     printString("abcdefghijklmnopqrstuvwxyz:;()\n");
     printString("01234567890,.'!|?/*_=+-#%$^&\n");
-    if(charHt*sy<24) {
-        printString("\e[1m");
-        printString("ABCDEFGHIJKLMNOPQRSTUVWXYZ[]{}\n");
-        printString("abcdefghijklmnopqrstuvwxyz:;()\n");
-        printString("01234567890,.'!|?/*_=+-#%$^&\n");
-        printString("\e[0m");
-    }
-    //delay(2000);
-}
+    printString("\e[0m");
+  }
+  //delay(2000);
+} 
 
-void setup()
+void setup() 
 {
-    Serial.begin(9600); // almost ok
-    lcd.init();
-    lcd.fillScreen(BLACK);
-    font.init(customRect, 240, 240); // custom fillRect function and screen width and height values
-    font.setFont(&rre_fjg_8x16);
-    charWd = font.getWidth();
-    charHt = font.getHeight();
-    font.setColor(WHITE);
-    font.setCharMinWd(8);
-    lcd.setScrollArea(0,0);
-    testVT100();
-    printString("\e[0;44m *** Terminal Init *** \e[0m\n");
+  //Serial.begin(9600); // perfect
+  //Serial.begin(19200); // perfect
+  Serial.begin(28800); // almost ok
+  lcd.init(SCR_WD, SCR_HT);
+  lcd.fillScreen(BLACK);
+  font.init(customRect, SCR_WD, SCR_HT); // custom fillRect function and screen width and height values
+  font.setFont(&rre_fjg_8x16);
+  charWd = font.getWidth();
+  charHt = font.getHeight();
+  font.setColor(WHITE);
+  font.setCharMinWd(8);  
+  lcd.setScrollArea(0,0);
+  testVT100();
+  printString("\e[0;44m *** Terminal Init *** \e[0m\n");
+
+  // // TODO
+  // sleep_us(1000);
+  // lcd.fillScreen(BLACK);
 }
 
+unsigned long us;
 
 void loop()
 {
-    while(Serial.available()) {
-        printTermChar(Serial.read());
-    }
+  while(Serial.available()) {
+    //us = micros();
+    printTermChar(Serial.read());
+    //Serial.println(micros()-us);
+  }
 }
-
