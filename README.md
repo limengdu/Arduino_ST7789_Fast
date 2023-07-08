@@ -40,18 +40,6 @@ Tested with **Arduino IDE 1.6.5 and Adafruit_GFX 1.5.6**
 - fast drawImage() from RAM
 - fast drawImage() from flash (PROGMEM)
 
-## Connections:
-
-|LCD pin|LCD pin name|Arduino|
-|--|--|--|
- |#01| GND| GND|
- |#02| VCC |VCC (3.3V only!)|
- |#03| SCL |D13/SCK|
- |#04| SDA|D11/MOSI|
- |#05| RES|D8 or any digital|
- |#06| DC|D7 or any digital|
- |#07| BLK | NC|
-
 
 If you find it useful and want to buy me a coffee or a beer:
 

@@ -10,8 +10,8 @@
 #include "RREFont.h"
 #include "rre_fjg_8x16.h"
 
-#define SCK   7
-#define SDA   8
+#define SCK   24
+#define SDA   23
 
 Arduino_ST7789 lcd = Arduino_ST7789(SCK, SDA);
 

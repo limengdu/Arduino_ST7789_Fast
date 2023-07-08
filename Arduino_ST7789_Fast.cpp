@@ -192,6 +192,12 @@ void Arduino_ST7789::init(uint16_t width, uint16_t height)
     pinMode(pinSda, OUTPUT);
     pinMode(pinSck, OUTPUT);
     
+    pinMode(22, OUTPUT);
+    digitalWrite(22, HIGH);
+    digitalWrite(22, LOW);
+    delay(100);
+    digitalWrite(22, HIGH);
+    
     commonST7789Init(NULL);
 
     if(width==240 && height==240) {
@@ -206,7 +212,7 @@ void Arduino_ST7789::init(uint16_t width, uint16_t height)
     _width  = 240;
     _height = 240;
     displayInit(init_240x240);
-    setRotation(0);
+    setRotation(1);
 }
 
 // ----------------------------------------------------------

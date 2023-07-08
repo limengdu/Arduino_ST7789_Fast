@@ -6,8 +6,8 @@
 #include <Adafruit_GFX.h>
 #include <Arduino_ST7789_Fast.h>
 
-#define SCK   9
-#define SDA   10
+#define SCK   24
+#define SDA   23
 
 Arduino_ST7789 lcd = Arduino_ST7789(SCK, SDA);
 

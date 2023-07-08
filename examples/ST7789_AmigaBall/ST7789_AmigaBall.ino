@@ -8,8 +8,8 @@
 #include <Arduino_ST7789_Fast.h>
 #include "ball.h"
 
-#define SCK   7
-#define SDA   8
+#define SCK   24
+#define SDA   23
 
 Arduino_ST7789 lcd = Arduino_ST7789(SCK, SDA);
 
