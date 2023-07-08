@@ -209,10 +209,10 @@ void Arduino_ST7789::init(uint16_t width, uint16_t height)
     }
 
     _ystart = _xstart = 0;
-    _width  = 240;
-    _height = 240;
+    _width  = width;
+    _height = height;
     displayInit(init_240x240);
-    setRotation(1);
+    setRotation(2);
 }
 
 // ----------------------------------------------------------

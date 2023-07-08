@@ -23,8 +23,8 @@ void customRect(int x, int y, int w, int h, int c) { return lcd.fillRect(x, y, w
 void setup()
 {
     Serial.begin(9600);
-    lcd.init();
-    font.init(customRect, 240, 240); // custom fillRect function and screen width and height values
+    lcd.init(240, 320);
+    font.init(customRect, 240, 320); // custom fillRect function and screen width and height values
 
     for(int i=0;i<256;i+=16) {
         uint8_t r,g,b;
