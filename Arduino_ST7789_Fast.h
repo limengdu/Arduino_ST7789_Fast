@@ -20,10 +20,10 @@
 #define FAST_IO     1
 
 #if FAST_IO
-#define    LCD_SCK_SET    gpio_put(24, 1);           // SET SCK HIGH
-#define    LCD_SDA_SET    gpio_put(23, 1);           // SET SDA HIGH
-#define    LCD_SCK_CLR    gpio_put(24, 0);          // SET SCK LOW
-#define    LCD_SDA_CLR    gpio_put(23, 0);          // SET SDA LOW
+#define    LCD_SCK_SET    digitalWrite(pinSck, HIGH);           // SET SCK HIGH
+#define    LCD_SDA_SET    digitalWrite(pinSda, HIGH);           // SET SDA HIGH
+#define    LCD_SCK_CLR    digitalWrite(pinSck, LOW);          // SET SCK LOW
+#define    LCD_SDA_CLR    digitalWrite(pinSda, LOW);          // SET SDA LOW
 #endif
 
 #define ST7789_TFTWIDTH         240
